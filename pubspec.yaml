@@ -19,7 +19,7 @@ dependencies:
   url_launcher: ^6.3.0
   fl_chart: ^0.69.0
   shared_preferences: ^2.2.3
-  package_info_plus: ^8.0.0
+  package_info_plus: ^8.3.0
   flutter_resizable_container: ^3.0.3
   permission_handler: ^11.3.1
   device_info_plus: ^11.1.1
