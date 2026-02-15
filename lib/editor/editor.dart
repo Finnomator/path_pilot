@@ -212,7 +212,6 @@ class _EditorState extends State<Editor> with AutomaticKeepAliveClientMixin {
         final isPortrait = screenSize.width < screenSize.height;
         return ResizableContainer(
           direction: isPortrait ? Axis.vertical : Axis.horizontal,
-          divider: ResizableDivider(thickness: 3, color: Colors.grey[800]),
           children: [
             ResizableChild(child: visualizer!),
             ResizableChild(child: editor!),
