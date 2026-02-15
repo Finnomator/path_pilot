@@ -31,12 +31,14 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final screenSize = MediaQuery.sizeOf(context);
     bool isScreenWide = screenSize.width > screenSize.height;
 
+    // Data Calculation
     final List<InnerOuterRobiState> chartStates = List.generate(
       iterations,
-      (i) => getRobiStateAtTimeInInstructionResult(
+          (i) => getRobiStateAtTimeInInstructionResult(
         widget.instructionResult,
         i / (iterations - 1) * widget.instructionResult.totalTime,
       ),
@@ -45,58 +47,37 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
 
     late final String xAxisTitle;
     late final String yAxisTitle;
-
     final angular = widget.instructionResult is! DriveResult;
 
     switch (xAxisMode) {
       case XAxisType.time:
-        xAxisTitle = "Time in s";
+        xAxisTitle = "Time (s)";
         break;
       case XAxisType.position:
-        if (angular) {
-          xAxisTitle = "Rotation in °";
-        } else {
-          xAxisTitle = "Distance driven in cm";
-        }
+        xAxisTitle = angular ? "Rotation (°)" : "Distance (cm)";
         break;
     }
 
     switch (yAxisMode) {
       case YAxisType.position:
-        if (angular) {
-          yAxisTitle = "Rotation in °";
-        } else {
-          yAxisTitle = "Distance driven in cm";
-        }
+        yAxisTitle = angular ? "Rotation (°)" : "Distance (cm)";
         break;
       case YAxisType.velocity:
-        yAxisTitle = "Velocity in ${angular ? "°/s" : "cm/s"}";
+        yAxisTitle = angular ? "Velocity (°/s)" : "Velocity (cm/s)";
         break;
       case YAxisType.acceleration:
-        yAxisTitle = "Acceleration in ${angular ? "°/s²" : "cm/s²"}";
+        yAxisTitle = angular ? "Accel (°/s²)" : "Accel (cm/s²)";
         break;
     }
 
-    final xSpots = xValues(
-      widget.instructionResult,
-      chartStates,
-      xAxisMode,
-    );
-
+    final xSpots = xValues(widget.instructionResult, chartStates, xAxisMode);
     final ySpots = angular
-        ? yAngularValues(
-            widget.instructionResult,
-            chartStates,
-            yAxisMode,
-          )
-        : yDriveResValues(
-            widget.instructionResult as DriveResult,
-            chartStates,
-            yAxisMode,
-          );
+        ? yAngularValues(widget.instructionResult, chartStates, yAxisMode)
+        : yDriveResValues(widget.instructionResult as DriveResult, chartStates, yAxisMode);
 
     final spots = mergeData(xSpots, ySpots);
 
+    // Scaling
     double minY = 0;
     double maxX = 0;
 
@@ -119,115 +100,153 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
 
     if (spots.isNotEmpty) {
       minY = spots.map((spot) => spot.y).reduce(min);
-    }
-    if (minY > 0) {
-      minY = 0;
+      if (minY > 0) minY = 0;
     }
 
-    return IntrinsicHeight(
-      child: Flex(
-        direction: isScreenWide ? Axis.horizontal : Axis.vertical,
-        children: [
-          Flexible(
-            fit: FlexFit.tight,
-            child: AspectRatio(
-              aspectRatio: 1.5,
-              child: ListenableBuilder(
-                builder: (context, child) {
-                  double? progress = (widget.timeChangeNotifier.time - widget.instructionResult.timeStamp) / widget.instructionResult.totalTime;
-                  if (progress > 1 || progress < 0) progress = null;
-                  return LineChart(
-                    LineChartData(
-                      borderData: FlBorderData(
-                        border: Border.all(color: const Color(0xff37434d), width: 2),
-                      ),
-                      minY: minY,
-                      lineTouchData: LineTouchData(
-                        touchTooltipData: LineTouchTooltipData(
-                          getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                            return touchedSpots.map((LineBarSpot touchedSpot) {
-                              final spot = touchedSpot as FlSpot;
-                              final end = touchedSpots.last == touchedSpot ? "" : "\n";
-                              String leading = "";
+    return Column(
+      children: [
+        // Controls Row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _buildMiniDropdown<XAxisType>(
+              value: xAxisMode,
+              items: XAxisType.values,
+              onChanged: (v) => setState(() => xAxisMode = v ?? XAxisType.position),
+              label: "X",
+            ),
+            const SizedBox(width: 8),
+            _buildMiniDropdown<YAxisType>(
+              value: yAxisMode,
+              items: YAxisType.values,
+              onChanged: (v) => setState(() => yAxisMode = v ?? YAxisType.velocity),
+              label: "Y",
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
 
-                              if (touchedSpots.length == 2) {
-                                leading = touchedSpot == touchedSpots.first ? "Inner " : "Outer ";
-                              }
+        // Chart
+        AspectRatio(
+          aspectRatio: isScreenWide ? 2.0 : 1.5,
+          child: ListenableBuilder(
+            listenable: widget.timeChangeNotifier,
+            builder: (context, child) {
+              double? progress = (widget.timeChangeNotifier.time - widget.instructionResult.timeStamp) / widget.instructionResult.totalTime;
+              if (progress > 1 || progress < 0) progress = null;
 
-                              return LineTooltipItem(
-                                "$leading$yAxisTitle: ${spot.y.toStringAsFixed(2)}$end",
-                                const TextStyle(),
-                              );
-                            }).toList();
-                          },
-                        ),
-                      ),
-                      titlesData: FlTitlesData(
-                        topTitles: const AxisTitles(),
-                        rightTitles: const AxisTitles(),
-                        leftTitles: AxisTitles(
-                          axisNameWidget: Text(yAxisTitle),
-                          sideTitles: const SideTitles(showTitles: true, reservedSize: 40, maxIncluded: false, minIncluded: false),
-                        ),
-                        bottomTitles: AxisTitles(
-                          axisNameWidget: Text(xAxisTitle),
-                          axisNameSize: 20,
-                          sideTitles: const SideTitles(showTitles: true, reservedSize: 30, maxIncluded: false, minIncluded: true),
-                        ),
-                      ),
-                      lineBarsData: [
-                        LineChartBarData(
-                          isStepLineChart: yAxisMode == YAxisType.acceleration,
-                          spots: spots,
-                          color: Colors.grey,
-                          dotData: const FlDotData(show: false),
-                        ),
-                      ],
-                      extraLinesData: progress == null
-                          ? null
-                          : ExtraLinesData(
-                              verticalLines: [
-                                VerticalLine(
-                                  x: getProgressIndicatorX(progress, maxX),
-                                  color: Colors.grey,
-                                  dashArray: [5, 5],
-                                ),
-                              ],
-                            ),
+              return LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: true,
+                    getDrawingHorizontalLine: (value) => FlLine(color: theme.dividerColor.withOpacity(0.2), strokeWidth: 1),
+                    getDrawingVerticalLine: (value) => FlLine(color: theme.dividerColor.withOpacity(0.2), strokeWidth: 1),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  minY: minY,
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (spot) => theme.colorScheme.surfaceContainerHighest,
+                      getTooltipItems: (touchedSpots) {
+                        return touchedSpots.map((touchedSpot) {
+                          return LineTooltipItem(
+                            "${touchedSpot.y.toStringAsFixed(1)}",
+                            TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
+                          );
+                        }).toList();
+                      },
                     ),
-                  );
-                },
-                listenable: widget.timeChangeNotifier,
-              ),
-            ),
+                  ),
+                  titlesData: FlTitlesData(
+                    topTitles: const AxisTitles(),
+                    rightTitles: const AxisTitles(),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 40,
+                        getTitlesWidget: (value, meta) => Text(
+                          value.toInt().toString(),
+                          style: TextStyle(color: theme.hintColor, fontSize: 10),
+                        ),
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      axisNameWidget: Text(xAxisTitle, style: TextStyle(fontSize: 10, color: theme.hintColor)),
+                      axisNameSize: 20,
+                      sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 22,
+                          getTitlesWidget: (value, meta) {
+                            if (value == 0 || value == maxX) return const SizedBox();
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(value.toInt().toString(), style: TextStyle(color: theme.hintColor, fontSize: 10)),
+                            );
+                          }
+                      ),
+                    ),
+                  ),
+                  lineBarsData: [
+                    LineChartBarData(
+                      isStepLineChart: yAxisMode == YAxisType.acceleration,
+                      spots: spots,
+                      color: theme.colorScheme.primary,
+                      barWidth: 2,
+                      isCurved: yAxisMode != YAxisType.acceleration,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                      ),
+                    ),
+                  ],
+                  extraLinesData: progress == null
+                      ? null
+                      : ExtraLinesData(
+                    verticalLines: [
+                      VerticalLine(
+                        x: getProgressIndicatorX(progress, maxX),
+                        color: theme.colorScheme.secondary,
+                        strokeWidth: 2,
+                        dashArray: [5, 5],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-          IntrinsicWidth(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!isScreenWide) const SizedBox(height: 20),
-                  DropdownMenu<XAxisType>(
-                    width: 180,
-                    initialSelection: xAxisMode,
-                    label: const Text("X-Axis"),
-                    onSelected: (value) => setState(() => xAxisMode = value ?? XAxisType.position),
-                    dropdownMenuEntries: XAxisType.values.map((e) => e.dropdownMenuEntry).toList(),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownMenu<YAxisType>(
-                    initialSelection: yAxisMode,
-                    width: 180,
-                    onSelected: (value) => setState(() => yAxisMode = value ?? YAxisType.velocity),
-                    label: const Text("Y-Axis"),
-                    dropdownMenuEntries: YAxisType.values.map((e) => e.dropdownMenuEntry).toList(),
-                  ),
-                ],
-              ),
-            ),
-          )
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMiniDropdown<T>({required T value, required List<T> items, required ValueChanged<T?> onChanged, required String label}) {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          icon: const Icon(Icons.arrow_drop_down, size: 18),
+          isDense: true,
+          style: Theme.of(context).textTheme.bodySmall,
+          onChanged: onChanged,
+          items: items.map((item) {
+            // Extract label from enum if possible, else toString
+            String text = item.toString().split('.').last;
+            if (item is XAxisType) text = item.label;
+            if (item is YAxisType) text = item.label;
+
+            return DropdownMenuItem<T>(value: item, child: Text("$label: $text"));
+          }).toList(),
+        ),
       ),
     );
   }
@@ -310,21 +329,17 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
   }
 
   List<FlSpot> mergeData(final List<double> xValues, final List<double> yValues) => List.generate(
-        xValues.length,
+    xValues.length,
         (i) => FlSpot(xValues[i], yValues[i]),
-        growable: false,
-      );
+    growable: false,
+  );
 }
 
 enum XAxisType {
-
   time("Time"),
   position("Position");
 
   final String label;
-
-  DropdownMenuEntry<XAxisType> get dropdownMenuEntry => DropdownMenuEntry(value: this, label: label);
-
   const XAxisType(this.label);
 }
 
@@ -334,8 +349,5 @@ enum YAxisType {
   acceleration("Acceleration");
 
   final String label;
-
-  DropdownMenuEntry<YAxisType> get dropdownMenuEntry => DropdownMenuEntry(value: this, label: label);
-
   const YAxisType(this.label);
 }
