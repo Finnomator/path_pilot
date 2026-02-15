@@ -68,7 +68,7 @@ class RapidTurnInstructionEditor extends AbstractEditor {
               instruction.left = newSelection.first;
               change(instruction);
             },
-            style: ButtonStyle(
+            style: const ButtonStyle(
               visualDensity: VisualDensity.compact,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),

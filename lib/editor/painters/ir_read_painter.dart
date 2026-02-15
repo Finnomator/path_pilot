@@ -51,11 +51,11 @@ class IrReadPainter extends MyPainter {
 
   late final Paint leftTrackPaint = Paint()
     ..strokeWidth = robiConfig.wheelWidth
-    ..color = white.withOpacity(0.6)
+    ..color = white.withValues(alpha: 0.6)
     ..style = PaintingStyle.stroke;
   late final Paint rightTrackPaint = Paint()
     ..strokeWidth = robiConfig.wheelWidth
-    ..color = white.withOpacity(0.6)
+    ..color = white.withValues(alpha: 0.6)
     ..style = PaintingStyle.stroke;
 
   final Aabb2 visibleArea;

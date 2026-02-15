@@ -281,14 +281,12 @@ class _FileBrowserState extends State<FileBrowser> with WidgetsBindingObserver {
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
-                  ...ViewMode.values.map(
-                    (v) => RadioListTile(
-                      value: v,
+                  RadioGroup<ViewMode>(
                       groupValue: viewMode,
-                      onChanged: (value) => setState(() => viewMode = value ?? v),
-                      title: Text(v.name),
-                    ),
-                  ),
+                      onChanged: (value) => setState(() => viewMode = value ?? ViewMode.instructions),
+                      child: Column(
+                        children: ViewMode.values.map((v) => RadioListTile(value: v, title: Text(v.name))).toList(growable: false),
+                      )),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.square_rounded),

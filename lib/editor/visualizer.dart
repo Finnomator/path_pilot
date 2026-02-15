@@ -228,7 +228,7 @@ class Visualizer extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Theme.of(context).colorScheme.surface.withOpacity(0),
+                    Theme.of(context).colorScheme.surface.withValues(alpha: 0),
                     Theme.of(context).colorScheme.surface,
                   ],
                   stops: const [0, 1],

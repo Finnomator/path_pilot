@@ -38,7 +38,7 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
     // Data Calculation
     final List<InnerOuterRobiState> chartStates = List.generate(
       iterations,
-          (i) => getRobiStateAtTimeInInstructionResult(
+      (i) => getRobiStateAtTimeInInstructionResult(
         widget.instructionResult,
         i / (iterations - 1) * widget.instructionResult.totalTime,
       ),
@@ -71,9 +71,7 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
     }
 
     final xSpots = xValues(widget.instructionResult, chartStates, xAxisMode);
-    final ySpots = angular
-        ? yAngularValues(widget.instructionResult, chartStates, yAxisMode)
-        : yDriveResValues(widget.instructionResult as DriveResult, chartStates, yAxisMode);
+    final ySpots = angular ? yAngularValues(widget.instructionResult, chartStates, yAxisMode) : yDriveResValues(widget.instructionResult as DriveResult, chartStates, yAxisMode);
 
     final spots = mergeData(xSpots, ySpots);
 
@@ -140,8 +138,8 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: true,
-                    getDrawingHorizontalLine: (value) => FlLine(color: theme.dividerColor.withOpacity(0.2), strokeWidth: 1),
-                    getDrawingVerticalLine: (value) => FlLine(color: theme.dividerColor.withOpacity(0.2), strokeWidth: 1),
+                    getDrawingHorizontalLine: (value) => FlLine(color: theme.dividerColor.withValues(alpha: 0.2), strokeWidth: 1),
+                    getDrawingVerticalLine: (value) => FlLine(color: theme.dividerColor.withValues(alpha: 0.2), strokeWidth: 1),
                   ),
                   borderData: FlBorderData(show: false),
                   minY: minY,
@@ -151,7 +149,7 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
                       getTooltipItems: (touchedSpots) {
                         return touchedSpots.map((touchedSpot) {
                           return LineTooltipItem(
-                            "${touchedSpot.y.toStringAsFixed(1)}",
+                            touchedSpot.y.toStringAsFixed(1),
                             TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
                           );
                         }).toList();
@@ -162,9 +160,10 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
                     topTitles: const AxisTitles(),
                     rightTitles: const AxisTitles(),
                     leftTitles: AxisTitles(
+                      axisNameWidget: Text(yAxisTitle, style: TextStyle(fontSize: 10, color: theme.hintColor)),
+                      axisNameSize: 20,
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 40,
                         getTitlesWidget: (value, meta) => Text(
                           value.toInt().toString(),
                           style: TextStyle(color: theme.hintColor, fontSize: 10),
@@ -176,15 +175,13 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
                       axisNameSize: 20,
                       sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 22,
                           getTitlesWidget: (value, meta) {
                             if (value == 0 || value == maxX) return const SizedBox();
                             return Padding(
                               padding: const EdgeInsets.only(top: 4.0),
                               child: Text(value.toInt().toString(), style: TextStyle(color: theme.hintColor, fontSize: 10)),
                             );
-                          }
-                      ),
+                          }),
                     ),
                   ),
                   lineBarsData: [
@@ -197,22 +194,22 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
                       dotData: const FlDotData(show: false),
                       belowBarData: BarAreaData(
                         show: true,
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
                       ),
                     ),
                   ],
                   extraLinesData: progress == null
                       ? null
                       : ExtraLinesData(
-                    verticalLines: [
-                      VerticalLine(
-                        x: getProgressIndicatorX(progress, maxX),
-                        color: theme.colorScheme.secondary,
-                        strokeWidth: 2,
-                        dashArray: [5, 5],
-                      ),
-                    ],
-                  ),
+                          verticalLines: [
+                            VerticalLine(
+                              x: getProgressIndicatorX(progress, maxX),
+                              color: theme.colorScheme.secondary,
+                              strokeWidth: 2,
+                              dashArray: [5, 5],
+                            ),
+                          ],
+                        ),
                 ),
               );
             },
@@ -329,10 +326,10 @@ class _InstructionDetailsWidgetState extends State<InstructionDetailsWidget> {
   }
 
   List<FlSpot> mergeData(final List<double> xValues, final List<double> yValues) => List.generate(
-    xValues.length,
+        xValues.length,
         (i) => FlSpot(xValues[i], yValues[i]),
-    growable: false,
-  );
+        growable: false,
+      );
 }
 
 enum XAxisType {
@@ -340,6 +337,7 @@ enum XAxisType {
   position("Position");
 
   final String label;
+
   const XAxisType(this.label);
 }
 
@@ -349,5 +347,6 @@ enum YAxisType {
   acceleration("Acceleration");
 
   final String label;
+
   const YAxisType(this.label);
 }

@@ -29,8 +29,6 @@ class _AddInstructionDialogState extends State<AddInstructionDialog> {
         leading: Icon(value.icon),
       ),
       value: value,
-      groupValue: selectedInstruction,
-      onChanged: (v) => setState(() => selectedInstruction = v!),
     );
   }
 
@@ -47,9 +45,17 @@ class _AddInstructionDialogState extends State<AddInstructionDialog> {
               if (groupedUserInstructions.keys.length > 1) ...[
                 Text(groupName, style: const TextStyle(fontSize: 20)),
               ],
-              for (final userInstruction in groupedUserInstructions[groupName]!) ...[
-                createRadioButtonForAdd(userInstruction),
-              ],
+              RadioGroup<UserInstruction>(
+                groupValue: selectedInstruction,
+                onChanged: (value) => setState(() => selectedInstruction = value!),
+                child: Column(
+                  children: [
+                    for (final userInstruction in groupedUserInstructions[groupName]!) ...[
+                      createRadioButtonForAdd(userInstruction),
+                    ],
+                  ],
+                ),
+              ),
               if (groupName != groupedUserInstructions.keys.last) ...[
                 const Divider(height: 5),
               ],
@@ -78,7 +84,7 @@ class _AddInstructionDialogState extends State<AddInstructionDialog> {
 enum UserInstruction {
   drive("Drive", Icons.arrow_upward),
   turn("Turn", Icons.turn_right),
-  rapidTurn("Rapid Turn", Icons.turn_right),;
+  rapidTurn("Rapid Turn", Icons.rotate_right),;
 
   final String name;
   final IconData icon;

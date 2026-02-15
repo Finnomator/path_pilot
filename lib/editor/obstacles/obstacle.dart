@@ -50,7 +50,7 @@ class RectangleObstacle extends Obstacle {
 
   @override
   Map<String, dynamic> toJson() => {
-        "color": paint.color.value,
+        "color": paint.color.toARGB32(),
         "x": x,
         "y": y,
         "w": w,
@@ -85,7 +85,7 @@ class CircleObstacle extends Obstacle {
 
   @override
   Map<String, dynamic> toJson() => {
-        "color": paint.color.value,
+        "color": paint.color.toARGB32(),
         "x": x,
         "y": y,
         "r": radius,
@@ -211,7 +211,7 @@ Image location: $_imagePath""";
   Map<String, dynamic> toJson() {
     if (image == null) return {};
     return {
-      "color": paint.color.value,
+      "color": paint.color.toARGB32(),
       "x": x,
       "y": y,
       "img_path": _imagePath,

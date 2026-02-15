@@ -23,72 +23,72 @@ class _RobiConfigSettingsPageState extends State<RobiConfigSettingsPage> {
       appBar: AppBar(
         title: const Text("Robi Configs"),
       ),
-      body: ListView(
-        children: [
-          const Divider(height: 1),
-          RadioListTile(
-            title: Text(RobiConfig.defaultConfig.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            value: RobiConfig.defaultConfig,
-            groupValue: selectedConfig,
-            subtitle: Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(Icons.visibility),
-                onPressed: () => viewRobiConfigDialog(RobiConfig.defaultConfig),
-              ),
-            ),
-            onChanged: (value) => selectConfig(value ?? RobiConfig.defaultConfig),
-          ),
-          const Divider(height: 1),
-          for (final config in RobiConfigStorage.configs) ...[
-            RadioListTile<RobiConfig>(
-              groupValue: selectedConfig,
-              value: config,
-              onChanged: (value) => selectConfig(value ?? RobiConfig.defaultConfig),
-              title: Text(config.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.visibility),
-                    onPressed: () => viewRobiConfigDialog(config),
-                  ),
-                  const SizedBox(width: 10),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return RobiConfigurator(
-                              initialConfig: config,
-                              title: "Edit ${config.name}",
-                              addedConfig: (c) {
-                                final i = RobiConfigStorage.configs.indexOf(config);
-                                RobiConfigStorage.remove(config);
-                                RobiConfigStorage.configs.insert(i, c);
-                                selectConfig(c);
-                              },
-                            );
-                          },
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.edit),
-                  ),
-                  const SizedBox(width: 10),
-                  IconButton(
-                    onPressed: () {
-                      RobiConfigStorage.remove(config);
-                      selectConfig(RobiConfig.defaultConfig);
-                    },
-                    icon: const Icon(Icons.delete),
-                  ),
-                ],
+      body: RadioGroup<RobiConfig>(
+        onChanged: (value) => selectConfig(value ?? RobiConfig.defaultConfig),
+        groupValue: selectedConfig,
+        child: ListView(
+          children: [
+            const Divider(height: 1),
+            RadioListTile(
+              title: Text(RobiConfig.defaultConfig.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+              value: RobiConfig.defaultConfig,
+              subtitle: Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: const Icon(Icons.visibility),
+                  onPressed: () => viewRobiConfigDialog(RobiConfig.defaultConfig),
+                ),
               ),
             ),
             const Divider(height: 1),
+            for (final config in RobiConfigStorage.configs) ...[
+              RadioListTile<RobiConfig>(
+                value: config,
+                title: Text(config.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.visibility),
+                      onPressed: () => viewRobiConfigDialog(config),
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return RobiConfigurator(
+                                initialConfig: config,
+                                title: "Edit ${config.name}",
+                                addedConfig: (c) {
+                                  final i = RobiConfigStorage.configs.indexOf(config);
+                                  RobiConfigStorage.remove(config);
+                                  RobiConfigStorage.configs.insert(i, c);
+                                  selectConfig(c);
+                                },
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.edit),
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      onPressed: () {
+                        RobiConfigStorage.remove(config);
+                        selectConfig(RobiConfig.defaultConfig);
+                      },
+                      icon: const Icon(Icons.delete),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+            ],
           ],
-        ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

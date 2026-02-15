@@ -127,7 +127,7 @@ class _InstructionCardState extends State<InstructionCard> {
         margin: const EdgeInsets.only(bottom: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: hasWarning ? BorderSide(color: Colors.orangeAccent.withOpacity(0.5), width: 1.5) : BorderSide.none,
+          side: hasWarning ? BorderSide(color: Colors.orangeAccent.withValues(alpha: 0.5), width: 1.5) : BorderSide.none,
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -238,9 +238,9 @@ class _InstructionCardState extends State<InstructionCard> {
           if (widget.instructionResult.totalTime > 0)
             Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
+                border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
               ),
               padding: const EdgeInsets.all(16),
               child: InstructionDetailsWidget(
@@ -258,7 +258,7 @@ class _InstructionCardState extends State<InstructionCard> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(children: const [Icon(Icons.warning_amber, color: Colors.orange), SizedBox(width: 8), Text("Simulation Warning")]),
+        title: const Row(children: [Icon(Icons.warning_amber, color: Colors.orange), SizedBox(width: 8), Text("Simulation Warning")]),
         content: Text(widget.warningMessage ?? ""),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Dismiss")),
