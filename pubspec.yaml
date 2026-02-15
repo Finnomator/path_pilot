@@ -25,7 +25,7 @@ dependencies:
   device_info_plus: ^11.1.1
   filesystem_picker: ^4.1.0
   flex_color_picker: ^3.6.0
-  flutter_expandable_fab: ^2.3.0
+  flutter_expandable_fab: ^2.5.2
   intl: ^0.20.0
   path_provider: ^2.1.5
   grouped_list: ^6.0.0
