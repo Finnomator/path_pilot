@@ -2,85 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_pilot/file_browser.dart';
 import 'package:path_pilot/helper/dialogs.dart';
 import 'package:path_pilot/main.dart';
-
-get fileSystemShortcuts => getShortcuts();
-
-List<FilesystemPickerShortcut> getShortcuts() {
-  if (Platform.isAndroid) {
-    final documentsDir = Directory("/storage/emulated/0/Documents");
-    final downloadDir = Directory("/storage/emulated/0/Download");
-
-    return [
-      FilesystemPickerShortcut(name: "Internal storage", path: Directory("/storage/emulated/0"), icon: Icons.storage),
-      if (documentsDir.existsSync()) FilesystemPickerShortcut(name: "Documents", path: documentsDir, icon: Icons.description),
-      if (downloadDir.existsSync()) FilesystemPickerShortcut(name: "Download", path: downloadDir, icon: Icons.download),
-    ];
-  } else if (Platform.isLinux) {
-    final userName = Platform.environment["USER"];
-
-    final homeDir = Directory("/home");
-    final userNameDir = Directory("/home/$userName");
-    final documentsDir = Directory("/home/$userName/Documents");
-    final downloadsDir = Directory("/home/$userName/Downloads");
-
-    return [
-      FilesystemPickerShortcut(name: "/", path: Directory("/"), icon: Icons.storage),
-      if (userNameDir.existsSync())
-        FilesystemPickerShortcut(name: "Home", path: userNameDir, icon: Icons.home)
-      else if (homeDir.existsSync())
-        FilesystemPickerShortcut(name: "/home", path: homeDir, icon: Icons.home),
-      if (documentsDir.existsSync()) FilesystemPickerShortcut(name: "Documents", path: documentsDir, icon: Icons.description),
-      if (downloadsDir.existsSync()) FilesystemPickerShortcut(name: "Downloads", path: downloadsDir, icon: Icons.download),
-    ];
-  } else if (Platform.isWindows) {
-    final userName = Platform.environment["USERNAME"];
-
-    final drives = "ABCDEFGHIJKLMNOPQRSTUVWXY".split("").map((e) => Directory("$e:/")).where((e) => e.existsSync()).toList();
-
-    return [
-      for (final drive in drives) ...[
-        FilesystemPickerShortcut(
-          name: drive.path,
-          path: drive,
-          icon: Icons.storage,
-        ),
-        if (Directory("${drive.path}/Users/$userName").existsSync()) ...[
-          FilesystemPickerShortcut(
-            name: "Home",
-            path: Directory("${drive.path}/Users/$userName"),
-            icon: Icons.home,
-          ),
-          if (Directory("${drive.path}/Users/$userName/Documents").existsSync())
-            FilesystemPickerShortcut(
-              name: "Documents",
-              path: Directory("${drive.path}/Users/$userName/Documents"),
-              icon: Icons.description,
-            ),
-          if (Directory("${drive.path}/Users/$userName/Downloads").existsSync())
-            FilesystemPickerShortcut(
-              name: "Downloads",
-              path: Directory("${drive.path}/Users/$userName/Downloads"),
-              icon: Icons.download,
-            )
-        ] else if (Directory("${drive.path}/Users").existsSync())
-          FilesystemPickerShortcut(
-            name: "Users",
-            path: Directory("${drive.path}/Users"),
-            icon: Icons.people,
-          ),
-      ],
-    ];
-  } else {
-    throw UnsupportedError("Unsupported platform");
-  }
-}
 
 Future<File?> writeBytesToFileWithStatusMessage(
   String path,
@@ -257,17 +184,14 @@ Future<String?> pickSingleFile({
   initialDirectory ??= lastDirectory;
   lastDirectory = initialDirectory;
 
-  final filePath = await FilesystemPicker.openDialog(
-    context: context,
-    pickText: dialogTitle,
-    shortcuts: fileSystemShortcuts,
-    fsType: FilesystemType.file,
+  final result = await FilePicker.platform.pickFiles(
+    dialogTitle: dialogTitle,
+    initialDirectory: initialDirectory?.path,
+    allowMultiple: false,
     allowedExtensions: allowedExtensions,
-    fileTileSelectMode: FileTileSelectMode.wholeTile,
-    directory: initialDirectory,
-    requestPermission: () => getExternalStoragePermission(),
   );
-  return filePath;
+
+  return result?.files.single.path;
 }
 
 Future<Uint8List?> readBytesFromFileWithWithStatusMessage(String path) async {
